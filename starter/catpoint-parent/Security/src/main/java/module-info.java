@@ -3,6 +3,8 @@ module com.udacity.catpoint.security {
 	requires com.google.common;
 	requires com.google.gson;
 	requires java.prefs;
-	exports com.udacity.catpoint.security.data;
+	requires com.udacity.catpoint.image;
+	requires miglayout.swing;
+	exports com.udacity.catpoint.security.data to com.google.gson;
 	exports com.udacity.catpoint.security.service;
 }
