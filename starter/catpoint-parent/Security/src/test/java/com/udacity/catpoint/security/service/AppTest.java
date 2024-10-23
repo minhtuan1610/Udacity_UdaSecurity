@@ -1,11 +1,17 @@
 package com.udacity.catpoint.security.service;
 
 
+import com.udacity.catpoint.image.service.FakeImageService;
+import com.udacity.catpoint.security.application.StatusListener;
+import com.udacity.catpoint.security.data.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
 
 /**
  * Unit test for simple App.
@@ -13,11 +19,36 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(MockitoExtension.class)
 public class AppTest {
 
+	private SecurityService securityService;
+
+	private Sensor sensor;
+
+	@Mock
+	private StatusListener statusListener;
+
+	@Mock
+	private SecurityRepository securityRepository;
+
+	@Mock
+	private FakeImageService fakeImageService;
+
+	@BeforeEach
+	public void init() {
+		securityService = new SecurityService(securityRepository, fakeImageService);
+		sensor = new Sensor("1st Sensor", SensorType.DOOR);
+	}
+
 	/**
 	 * Test 1: If alarm is armed and a sensor becomes activated, put the system into pending alarm status.
 	 */
 	@Test
 	public void alarmStatus_armedAlarmActivatedSensor_statusPending() {
+
+		when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
+
+		when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.NO_ALARM);
+		securityService.changeSensorActivationStatus(sensor, true);
+		verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.PENDING_ALARM);
 	}
 
 	/**
