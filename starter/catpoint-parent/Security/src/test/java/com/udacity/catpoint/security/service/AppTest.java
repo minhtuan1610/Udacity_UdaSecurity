@@ -43,11 +43,11 @@ public class AppTest {
 	 */
 	@Test
 	public void alarmStatus_armedAlarmActivatedSensor_statusPending() {
-
+		// Ensure the arming status and alarm status always armed and no alarm
 		when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
-
 		when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.NO_ALARM);
 		securityService.changeSensorActivationStatus(sensor, true);
+		// Confirm the conditions occur once.
 		verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.PENDING_ALARM);
 	}
 
@@ -56,6 +56,10 @@ public class AppTest {
 	 */
 	@Test
 	public void alarmStatus_armedAlarmActivatedSensorPendingSystem_statusAlarm() {
+		when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
+		when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
+		securityService.changeSensorActivationStatus(sensor, true);
+		verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
 	}
 
 	/**
@@ -63,6 +67,10 @@ public class AppTest {
 	 */
 	@Test
 	public void alarmStatus_pendingAlarmInactivateAllSensor_noAlarmState() {
+		when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
+		sensor.setActive(false);
+		securityService.changeSensorActivationStatus(sensor, false); // Need to update condition for this method
+		verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
 	}
 
 	/**

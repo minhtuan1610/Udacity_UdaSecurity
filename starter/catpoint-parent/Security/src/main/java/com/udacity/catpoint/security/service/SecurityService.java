@@ -87,7 +87,7 @@ public class SecurityService {
 	public void changeSensorActivationStatus(Sensor sensor, Boolean active) {
 		if (!sensor.getActive() && active) {
 			handleSensorActivated();
-		} else if (sensor.getActive() && !active) {
+		} else if ((sensor.getActive() && !active) || (!sensor.getActive() && !active)) {
 			handleSensorDeactivated();
 		}
 		sensor.setActive(active);
