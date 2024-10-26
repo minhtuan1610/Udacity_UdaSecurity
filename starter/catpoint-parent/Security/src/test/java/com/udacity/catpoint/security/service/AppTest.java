@@ -7,10 +7,13 @@ import com.udacity.catpoint.security.data.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 /**
@@ -35,6 +38,7 @@ public class AppTest {
 	@BeforeEach
 	public void init() {
 		securityService = new SecurityService(securityRepository, fakeImageService);
+		// The default active status: false
 		sensor = new Sensor("1st Sensor", SensorType.DOOR);
 	}
 
@@ -76,8 +80,12 @@ public class AppTest {
 	/**
 	 * Test 4: If alarm is active, change in sensor state should not affect the alarm state.
 	 */
-	@Test
-	public void alarmStatus_activateAlarmChangeSensorState_notAffectAlarmState() {
+	@ParameterizedTest
+	@ValueSource(booleans = {true, false})
+	public void alarmStatus_activateAlarmChangeSensorState_notAffectAlarmState(Boolean status) {
+		when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.ALARM);
+		securityService.changeSensorActivationStatus(sensor, status);
+		assertEquals(AlarmStatus.ALARM, securityService.getAlarmStatus());
 	}
 
 	/**
@@ -85,13 +93,22 @@ public class AppTest {
 	 */
 	@Test
 	public void alarmStatus_activateTheActivatedSensorPendingSystem_changeToAlarmState() {
+		when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
+		sensor.setActive(true);
+		securityService.changeSensorActivationStatus(sensor, true);
+		verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
 	}
 
 	/**
 	 * Test 6: If a sensor is deactivated while already inactive, make no changes to the alarm state.
 	 */
-	@Test
-	public void alarmStatus_deactivateTheInactivatedSensor_noChangeAlarmState() {
+	@ParameterizedTest
+	@EnumSource(value = AlarmStatus.class, names = {"NO_ALARM", "PENDING_ALARM", "ALARM"})
+	public void alarmStatus_deactivateTheInactivatedSensor_noChangeAlarmState(AlarmStatus status) {
+		when(securityRepository.getAlarmStatus()).thenReturn(status);
+		sensor.setActive(false);
+		securityService.changeSensorActivationStatus(sensor, false);
+		assertEquals(status, securityService.getAlarmStatus());
 	}
 
 	/**

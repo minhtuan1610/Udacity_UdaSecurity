@@ -85,7 +85,7 @@ public class SecurityService {
 	 * @param active
 	 */
 	public void changeSensorActivationStatus(Sensor sensor, Boolean active) {
-		if (!sensor.getActive() && active) {
+		if ((!sensor.getActive() && active) || (sensor.getActive() && active)) {
 			handleSensorActivated();
 		} else if ((sensor.getActive() && !active) || (!sensor.getActive() && !active)) {
 			handleSensorDeactivated();
