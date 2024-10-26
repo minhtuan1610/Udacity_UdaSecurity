@@ -1,6 +1,5 @@
 package com.udacity.catpoint.security.service;
 
-
 import com.udacity.catpoint.image.service.FakeImageService;
 import com.udacity.catpoint.security.application.StatusListener;
 import com.udacity.catpoint.security.data.*;
@@ -12,6 +11,8 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.awt.image.BufferedImage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -116,6 +117,9 @@ public class AppTest {
 	 */
 	@Test
 	public void alarmStatus_detectCatWhileArmedHomeSystem_statusAlarm() {
+		when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
+		when(fakeImageService.imageContainsCat(any(), any())).thenReturn(true);
+		verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
 	}
 
 	/**
