@@ -13,6 +13,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.awt.image.BufferedImage;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -35,6 +38,23 @@ public class AppTest {
 
 	@Mock
 	private FakeImageService fakeImageService;
+
+	/**
+	 * Method to create a list of sensors and add them into a Set.
+	 * @param count the number of sensor in list
+	 * @param status status of sensor
+	 * @return the set of sensor
+	 */
+	private Set<Sensor> getAllSensors(int count, boolean status){
+		Set<Sensor> sensorsList = new HashSet<>();
+		String randomName = UUID.randomUUID().toString();
+		for (int i = 0; i < count; i++) {
+			Sensor sensorRandom = new Sensor(randomName, SensorType.DOOR);
+			sensorRandom.setActive(status);
+			sensorsList.add(sensorRandom);
+		}
+		return sensorsList;
+	}
 
 	@BeforeEach
 	public void init() {
@@ -118,7 +138,9 @@ public class AppTest {
 	@Test
 	public void alarmStatus_detectCatWhileArmedHomeSystem_statusAlarm() {
 		when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
-		when(fakeImageService.imageContainsCat(any(), any())).thenReturn(true);
+		when(fakeImageService.imageContainsCat(any(), anyFloat())).thenReturn(true);
+		BufferedImage catImg = new BufferedImage(200,200,BufferedImage.TYPE_INT_RGB);
+		securityService.processImage(catImg);
 		verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
 	}
 
@@ -127,6 +149,12 @@ public class AppTest {
 	 */
 	@Test
 	public void alarmStatus_noCatIdentifyInactivatedSensor_noAlarmState() {
+		Set<Sensor> sensors = getAllSensors(2, false);
+		lenient().when(securityRepository.getSensors()).thenReturn(sensors); // Need to re-check again
+		when(fakeImageService.imageContainsCat(any(), anyFloat())).thenReturn(false);
+		BufferedImage catImg = new BufferedImage(200,200,BufferedImage.TYPE_INT_RGB);
+		securityService.processImage(catImg);
+		verify(securityRepository,times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
 	}
 
 	/**
@@ -134,19 +162,41 @@ public class AppTest {
 	 */
 	@Test
 	public void alarmStatus_disarmedSystem_noAlarmState() {
+		securityService.setArmingStatus(ArmingStatus.DISARMED);
+		verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
 	}
 
 	/**
 	 * Test 10: If the system is armed, reset all sensors to inactive.
+	 * Tips: Sensors were not reset to inactive when the system was armed: put all sensors to the active state when disarmed,
+	 * then put the system in the armed state; sensors should be inactivated.
 	 */
-	@Test
-	public void sensorStatus_disarmedSystem_deactivateAllSensor() {
+	@ParameterizedTest
+	@EnumSource(value = ArmingStatus.class, names = {"ARMED_AWAY", "ARMED_HOME"})
+	public void sensorStatus_disarmedSystem_deactivateAllSensor(ArmingStatus status) {
+		Set<Sensor> sensorSet = getAllSensors(2, true);
+		when(securityRepository.getSensors()).thenReturn(sensorSet);
+		when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
+		securityService.setArmingStatus(status);
+		for ( Sensor sensorIndex :sensorSet) {
+			assertEquals(false, sensorIndex.getActive());
+		}
 	}
 
 	/**
 	 * Test 11: If the system is armed-home while the camera shows a cat, set the alarm status to alarm.
+	 * Tips: Put the system as disarmed, scan a picture until it detects a cat after that, make it armed, it should make the system in the ALARM state.
 	 */
 	@Test
 	public void alarmStatus_armedSystemDetectedCat_statusAlarm() {
+		// Put the system as disarmed
+		when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.DISARMED);
+		// The camera shows a cat
+		when(fakeImageService.imageContainsCat(any(), anyFloat())).thenReturn(true);
+		BufferedImage catImg = new BufferedImage(200,200,BufferedImage.TYPE_INT_RGB);
+		securityService.processImage(catImg);
+
+		securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
+		verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
 	}
 }
