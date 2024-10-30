@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
  * Unit test for simple App.
  */
 @ExtendWith(MockitoExtension.class)
-public class AppTest {
+public class SecurityServiceTest {
 
 	private SecurityService securityService;
 
@@ -45,7 +45,7 @@ public class AppTest {
 	 * @param status status of sensor
 	 * @return the set of sensor
 	 */
-	private Set<Sensor> getAllSensors(int count, boolean status){
+	private Set<Sensor> getAllSensors(int count, boolean status) {
 		Set<Sensor> sensorsList = new HashSet<>();
 		String randomName = UUID.randomUUID().toString();
 		for (int i = 0; i < count; i++) {
@@ -139,7 +139,7 @@ public class AppTest {
 	public void alarmStatus_detectCatWhileArmedHomeSystem_statusAlarm() {
 		when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
 		when(fakeImageService.imageContainsCat(any(), anyFloat())).thenReturn(true);
-		BufferedImage catImg = new BufferedImage(200,200,BufferedImage.TYPE_INT_RGB);
+		BufferedImage catImg = new BufferedImage(200, 200, BufferedImage.TYPE_INT_RGB);
 		securityService.processImage(catImg);
 		verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
 	}
@@ -152,9 +152,9 @@ public class AppTest {
 		Set<Sensor> sensors = getAllSensors(2, false);
 		lenient().when(securityRepository.getSensors()).thenReturn(sensors); // Need to re-check again
 		when(fakeImageService.imageContainsCat(any(), anyFloat())).thenReturn(false);
-		BufferedImage catImg = new BufferedImage(200,200,BufferedImage.TYPE_INT_RGB);
+		BufferedImage catImg = new BufferedImage(200, 200, BufferedImage.TYPE_INT_RGB);
 		securityService.processImage(catImg);
-		verify(securityRepository,times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
+		verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
 	}
 
 	/**
@@ -178,7 +178,7 @@ public class AppTest {
 		when(securityRepository.getSensors()).thenReturn(sensorSet);
 		when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
 		securityService.setArmingStatus(status);
-		for ( Sensor sensorIndex :sensorSet) {
+		for (Sensor sensorIndex : sensorSet) {
 			assertEquals(false, sensorIndex.getActive());
 		}
 	}
@@ -193,7 +193,7 @@ public class AppTest {
 		when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.DISARMED);
 		// The camera shows a cat
 		when(fakeImageService.imageContainsCat(any(), anyFloat())).thenReturn(true);
-		BufferedImage catImg = new BufferedImage(200,200,BufferedImage.TYPE_INT_RGB);
+		BufferedImage catImg = new BufferedImage(200, 200, BufferedImage.TYPE_INT_RGB);
 		securityService.processImage(catImg);
 
 		securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
