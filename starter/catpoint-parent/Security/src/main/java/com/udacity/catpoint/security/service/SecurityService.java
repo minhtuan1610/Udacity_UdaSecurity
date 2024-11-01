@@ -1,11 +1,11 @@
 package com.udacity.catpoint.security.service;
 
+import com.udacity.catpoint.image.service.FakeImageService;
 import com.udacity.catpoint.security.application.StatusListener;
 import com.udacity.catpoint.security.data.AlarmStatus;
 import com.udacity.catpoint.security.data.ArmingStatus;
 import com.udacity.catpoint.security.data.SecurityRepository;
 import com.udacity.catpoint.security.data.Sensor;
-import com.udacity.catpoint.image.service.FakeImageService;
 
 import java.awt.image.BufferedImage;
 import java.util.HashSet;
@@ -25,6 +25,7 @@ public class SecurityService {
 	private Set<StatusListener> statusListeners = new HashSet<>();
 
 	private Boolean catIndentify = false;
+
 	public SecurityService(SecurityRepository securityRepository, FakeImageService imageService) {
 		this.securityRepository = securityRepository;
 		this.imageService = imageService;
@@ -140,7 +141,7 @@ public class SecurityService {
 	 * @param armingStatus
 	 */
 	public void setArmingStatus(ArmingStatus armingStatus) {
-		if (catIndentify && armingStatus == ArmingStatus.ARMED_HOME){
+		if (catIndentify && armingStatus == ArmingStatus.ARMED_HOME) {
 			setAlarmStatus(AlarmStatus.ALARM);
 		}
 
@@ -148,11 +149,12 @@ public class SecurityService {
 			setAlarmStatus(AlarmStatus.NO_ALARM);
 		} else {
 			Set<Sensor> sensors = getSensors();
-			for (Sensor sensor:
-			     sensors) {
+			for (Sensor sensor :
+					sensors) {
 				changeSensorActivationStatus(sensor, false);
 			}
 		}
 		securityRepository.setArmingStatus(armingStatus);
+		statusListeners.forEach(StatusListener::sensorStatusChanged);
 	}
 }
