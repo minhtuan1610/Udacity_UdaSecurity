@@ -15,6 +15,9 @@ public class Sensor implements Comparable<Sensor> {
 	private Boolean active;
 	private SensorType sensorType;
 
+	/**
+	 * Ref: <a href="https://knowledge.udacity.com/questions/989076">Register sensor</a>.
+	 */
 	public Sensor() {
 	}
 
