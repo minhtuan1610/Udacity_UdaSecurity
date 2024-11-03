@@ -1,5 +1,6 @@
 package com.udacity.catpoint.security.service;
 
+import com.udacity.catpoint.image.service.AwsImageService;
 import com.udacity.catpoint.image.service.FakeImageService;
 import com.udacity.catpoint.security.application.StatusListener;
 import com.udacity.catpoint.security.data.*;
@@ -38,6 +39,9 @@ public class SecurityServiceTest {
 
 	@Mock
 	private FakeImageService fakeImageService;
+
+	@Mock
+	private AwsImageService awsImageService;
 
 	/**
 	 * Method to create a list of sensors and add them into a Set.
@@ -106,7 +110,8 @@ public class SecurityServiceTest {
 	public void alarmStatus_activateAlarmChangeSensorState_notAffectAlarmState(Boolean status) {
 		when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.ALARM);
 		securityService.changeSensorActivationStatus(sensor, status);
-		assertEquals(AlarmStatus.ALARM, securityService.getAlarmStatus());
+		// assertEquals(AlarmStatus.ALARM, securityService.getAlarmStatus());
+		verify(securityRepository, never()).setAlarmStatus(any(AlarmStatus.class));
 	}
 
 	/**
@@ -152,8 +157,7 @@ public class SecurityServiceTest {
 		Set<Sensor> sensors = getAllSensors(2, false);
 		lenient().when(securityRepository.getSensors()).thenReturn(sensors); // Need to re-check again
 		when(fakeImageService.imageContainsCat(any(), anyFloat())).thenReturn(false);
-		BufferedImage catImg = new BufferedImage(200, 200, BufferedImage.TYPE_INT_RGB);
-		securityService.processImage(catImg);
+		securityService.processImage(mock(BufferedImage.class));
 		verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
 	}
 

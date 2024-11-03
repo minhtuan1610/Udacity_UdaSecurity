@@ -1,6 +1,7 @@
 package com.udacity.catpoint.security.service;
 
 import com.udacity.catpoint.image.service.FakeImageService;
+import com.udacity.catpoint.image.service.ImageService;
 import com.udacity.catpoint.security.application.StatusListener;
 import com.udacity.catpoint.security.data.AlarmStatus;
 import com.udacity.catpoint.security.data.ArmingStatus;
@@ -12,6 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
+
 /**
  * Service that receives information about changes to the security system. Responsible for
  * forwarding updates to the repository and making any decisions about changing the system state.
@@ -21,13 +23,14 @@ import java.util.concurrent.ConcurrentSkipListSet;
  */
 public class SecurityService {
 
-	private FakeImageService imageService;
+	private FakeImageService fakeImageService;
 	private SecurityRepository securityRepository;
 	private Set<StatusListener> statusListeners = new HashSet<>();
 
+	private ImageService imageService;
 	private Boolean catIndentify = false;
 
-	public SecurityService(SecurityRepository securityRepository, FakeImageService imageService) {
+	public SecurityService(SecurityRepository securityRepository, ImageService imageService) {
 		this.securityRepository = securityRepository;
 		this.imageService = imageService;
 	}
@@ -89,10 +92,13 @@ public class SecurityService {
 	 * @param active
 	 */
 	public void changeSensorActivationStatus(Sensor sensor, Boolean active) {
-		if ((!sensor.getActive() && active) || (sensor.getActive() && active)) {
-			handleSensorActivated();
-		} else if ((sensor.getActive() && !active) || (!sensor.getActive() && !active)) {
-			handleSensorDeactivated();
+		AlarmStatus status = securityRepository.getAlarmStatus();
+		if (status != AlarmStatus.ALARM) {
+			if ((!sensor.getActive() && active) || (sensor.getActive() && active)) {
+				handleSensorActivated();
+			} else if ((sensor.getActive() && !active) || (!sensor.getActive() && !active)) {
+				handleSensorDeactivated();
+			}
 		}
 		sensor.setActive(active);
 		securityRepository.updateSensor(sensor);
@@ -104,6 +110,7 @@ public class SecurityService {
 	 * @param currentCameraImage
 	 */
 	public void processImage(BufferedImage currentCameraImage) {
+		// The imageContainsCat can be called from AwsImageService or FakeImageService
 		catDetected(imageService.imageContainsCat(currentCameraImage, 50.0f));
 	}
 
