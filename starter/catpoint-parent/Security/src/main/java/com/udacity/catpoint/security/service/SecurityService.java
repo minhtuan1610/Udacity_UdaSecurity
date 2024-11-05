@@ -94,13 +94,35 @@ public class SecurityService {
 	public void changeSensorActivationStatus(Sensor sensor, Boolean active) {
 		AlarmStatus status = securityRepository.getAlarmStatus();
 		if (status != AlarmStatus.ALARM) {
-			if ((!sensor.getActive() && active) || (sensor.getActive() && active)) {
+			/*if ((!sensor.getActive() && active) || (sensor.getActive() && active)) {
 				handleSensorActivated();
 			} else if ((sensor.getActive() && !active) || (!sensor.getActive() && !active)) {
+				handleSensorDeactivated();
+			}*/
+
+			if (active) {
+				handleSensorActivated();
+			} else if (sensor.getActive()) {
 				handleSensorDeactivated();
 			}
 		}
 		sensor.setActive(active);
+		securityRepository.updateSensor(sensor);
+	}
+
+	public void changeSensorActivationStatus(Sensor sensor) {
+		AlarmStatus status = this.getAlarmStatus();
+		ArmingStatus armingStatus = this.getArmingStatus();
+		if (status == AlarmStatus.PENDING_ALARM && !sensor.getActive()) {
+			/*if ((!sensor.getActive() && active) || (sensor.getActive() && active)) {
+				handleSensorActivated();
+			} else if ((sensor.getActive() && !active) || (!sensor.getActive() && !active)) {
+				handleSensorDeactivated();
+			}*/
+			handleSensorDeactivated();
+		} else if (status == AlarmStatus.ALARM && armingStatus == ArmingStatus.DISARMED) {
+			handleSensorDeactivated();
+		}
 		securityRepository.updateSensor(sensor);
 	}
 

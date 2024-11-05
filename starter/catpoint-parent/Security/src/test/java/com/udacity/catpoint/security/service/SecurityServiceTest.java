@@ -98,7 +98,7 @@ public class SecurityServiceTest {
 	public void alarmStatus_pendingAlarmInactivateAllSensor_noAlarmState() {
 		when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
 		sensor.setActive(false);
-		securityService.changeSensorActivationStatus(sensor, false); // Need to update condition for this method
+		securityService.changeSensorActivationStatus(sensor); // Need to update condition for this method
 		verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
 	}
 
@@ -154,7 +154,7 @@ public class SecurityServiceTest {
 	 */
 	@Test
 	public void alarmStatus_noCatIdentifyInactivatedSensor_noAlarmState() {
-		Set<Sensor> sensors = getAllSensors(2, false);
+		Set<Sensor> sensors = getAllSensors(3, false);
 		lenient().when(securityRepository.getSensors()).thenReturn(sensors); // Need to re-check again
 		when(fakeImageService.imageContainsCat(any(), anyFloat())).thenReturn(false);
 		securityService.processImage(mock(BufferedImage.class));
@@ -182,7 +182,7 @@ public class SecurityServiceTest {
 		when(securityRepository.getSensors()).thenReturn(sensorSet);
 		when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
 		securityService.setArmingStatus(status);
-		for (Sensor sensorIndex : sensorSet) {
+		for (Sensor sensorIndex : securityService.getSensors()) {
 			assertEquals(false, sensorIndex.getActive());
 		}
 	}
