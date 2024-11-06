@@ -31,6 +31,11 @@ public class SensorPanel extends JPanel implements StatusListener {
 		super();
 		setLayout(new MigLayout());
 		this.securityService = securityService;
+		/* Need to add for update status of sensors for test 10
+		 * Using to test in GUI app
+		 * Ref: https://knowledge.udacity.com/questions/1055162
+		 */
+		securityService.addStatusListener(this);
 
 		panelLabel.setFont(StyleService.HEADING_FONT);
 		addNewSensorButton.addActionListener(e ->
