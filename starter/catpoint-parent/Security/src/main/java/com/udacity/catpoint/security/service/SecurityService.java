@@ -44,7 +44,7 @@ public class SecurityService {
 		catIndentify = cat;
 		if (cat && getArmingStatus() == ArmingStatus.ARMED_HOME) {
 			setAlarmStatus(AlarmStatus.ALARM);
-		} else {
+		} else if (!cat && getSensors().stream().noneMatch(Sensor::getActive)) { // Update for test 8
 			setAlarmStatus(AlarmStatus.NO_ALARM);
 		}
 
