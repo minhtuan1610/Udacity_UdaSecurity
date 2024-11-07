@@ -203,4 +203,15 @@ public class SecurityServiceTest {
 		securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
 		verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
 	}
+
+	/**
+	 * Test for coverage case. Active Alarm and disarmed system
+	 */
+	@Test
+	public void alarmStatus_activeAlarmAndDisarmedSystem_statusPending() {
+		when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.DISARMED);
+		when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.ALARM);
+		securityService.changeSensorActivationStatus(sensor);
+		verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.PENDING_ALARM);
+	}
 }
